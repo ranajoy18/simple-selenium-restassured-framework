@@ -1,3 +1,5 @@
-/Users/ranajoydas/Projects/Automation/Practice/simple-selenium-restassured-framework/src/main/java/com/automation/App.java
+/Users/ranajoydas/Projects/Automation/Practice/simple-selenium-restassured-framework/src/main/java/com/automation/config/ConfigReader.java
 /Users/ranajoydas/Projects/Automation/Practice/simple-selenium-restassured-framework/src/main/java/com/automation/driver/DriverFactory.java
+/Users/ranajoydas/Projects/Automation/Practice/simple-selenium-restassured-framework/src/main/java/com/automation/pages/BasePage.java
+/Users/ranajoydas/Projects/Automation/Practice/simple-selenium-restassured-framework/src/main/java/com/automation/pages/DashboardPage.java
 /Users/ranajoydas/Projects/Automation/Practice/simple-selenium-restassured-framework/src/main/java/com/automation/pages/LoginPage.java

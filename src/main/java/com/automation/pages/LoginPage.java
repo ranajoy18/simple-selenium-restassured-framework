@@ -4,6 +4,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
+import com.automation.config.ConfigReader;
+
 public class LoginPage extends BasePage{
 
     public By LoginBtn=By.linkText("Login");
@@ -19,8 +21,8 @@ public class LoginPage extends BasePage{
     public void Login(){
 
         click(LoginBtn);
-        type(username,"rahul@netbank.com");
-        type(password,"Bank@123");
+        type(username,ConfigReader.getProperty("username"));
+        type(password,ConfigReader.getProperty("password"));
         click(signInBtn);
     }
 

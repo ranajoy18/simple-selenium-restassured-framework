@@ -6,13 +6,13 @@
 
     <test name="UI Tests">
         <classes>
-            <class name="ui.LoginTest"/>
+            <class name="com.automation.ui.LoginTest"/>
         </classes>
     </test>
 
     <test name="API Tests">
         <classes>
-            <class name="api.UserApiTest"/>
+            <class name="com.automation.api.UserApiTest"/>
         </classes>
     </test>
 
