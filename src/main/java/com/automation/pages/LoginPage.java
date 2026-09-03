@@ -1,16 +1,11 @@
 package com.automation.pages;
 
-import java.time.Duration;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class LoginPage {
+public class LoginPage extends BasePage{
 
-    WebDriver driver;
-    WebDriverWait wait;
     public By LoginBtn=By.linkText("Login");
     public By username=By.id("userId");
     public By password=By.id("password");
@@ -18,16 +13,15 @@ public class LoginPage {
     public By bankNavPanel=By.id("bankNav");
     
     public LoginPage(WebDriver driver){
-        this.driver=driver;
-        this.wait=new WebDriverWait(driver, Duration.ofSeconds(15));
+        super(driver);
     }
 
     public void Login(){
 
-        driver.findElement(LoginBtn).click();
-        wait.until(ExpectedConditions.visibilityOfElementLocated(username)).sendKeys("rahul@netbank.com");
-        driver.findElement(password).sendKeys("Bank@123");
-        driver.findElement(signInBtn).click();
+        click(LoginBtn);
+        type(username,"rahul@netbank.com");
+        type(password,"Bank@123");
+        click(signInBtn);
     }
 
     public boolean dashBoardisDisplayed(){
