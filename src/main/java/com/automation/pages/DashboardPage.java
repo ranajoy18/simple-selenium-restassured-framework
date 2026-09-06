@@ -12,7 +12,7 @@ public class DashboardPage extends BasePage{
     }
 
     public boolean isDashboardDisplayed() {
-        return waitForElement(welcomeUser).isDisplayed();
+        return isElementDisplayed(welcomeUser);
     }
 
 }

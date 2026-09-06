@@ -37,4 +37,13 @@ public class BasePage {
 
         return waitForElement(locator).getText();
     }
+
+    protected boolean isElementDisplayed(By locator) {
+
+    try {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+    } catch (Exception e) {
+        return false;
+    }
+}
 }
