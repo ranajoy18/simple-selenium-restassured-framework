@@ -13,6 +13,7 @@ public class DashboardPage extends BasePage{
     By beneficiariesNavLink = By.cssSelector("[data-testid='nav-beneficiaries']");
     By billPaymentsNavLink = By.cssSelector("[data-testid='nav-bill-payments']");
     By fixedDepositsNavLink = By.cssSelector("[data-testid='nav-fixed-deposits']");
+    By loanCalculatorNavLink = By.cssSelector("[data-testid='nav-loan-calculator']");
 
      public DashboardPage(WebDriver driver){
         super(driver);
@@ -49,6 +50,12 @@ public class DashboardPage extends BasePage{
     public FixedDepositPage navigateToFixedDeposits() {
         click(fixedDepositsNavLink);
         return new FixedDepositPage(driver);
+    }
+
+    @Step("Navigate to Loan Calculator")
+    public LoanCalculatorPage navigateToLoanCalculator() {
+        click(loanCalculatorNavLink);
+        return new LoanCalculatorPage(driver);
     }
 
 }

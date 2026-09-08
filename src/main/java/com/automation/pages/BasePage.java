@@ -46,6 +46,21 @@ public class BasePage {
         return waitForElement(locator).getText();
     }
 
+    protected void setSliderValue(By locator, String value) {
+
+        WebElement slider = waitForElement(locator);
+        // React tracks the native input value setter, so setting .value directly
+        // via a plain JS assignment doesn't trigger its onChange. Going through
+        // the native setter and dispatching input/change makes React pick it up.
+        String script =
+                "var input = arguments[0]; var value = arguments[1];" +
+                "var nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;" +
+                "nativeSetter.call(input, value);" +
+                "input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                "input.dispatchEvent(new Event('change', { bubbles: true }));";
+        ((JavascriptExecutor) driver).executeScript(script, slider, value);
+    }
+
     protected boolean isElementDisplayed(By locator) {
 
     try {
