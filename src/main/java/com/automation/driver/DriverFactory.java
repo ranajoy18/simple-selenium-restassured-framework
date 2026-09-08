@@ -35,7 +35,6 @@ public class DriverFactory {
         WebDriver driver = createDriver(browser);
         driverThreadLocal.set(driver);
 
-        driver.manage().window().maximize();
         driver.get(ConfigReader.getProperty("base.url"));
         return driver;
     }
@@ -50,6 +49,8 @@ public class DriverFactory {
             case "firefox":
                 FirefoxOptions firefoxOptions = new FirefoxOptions();
                 firefoxOptions.addArguments("--headless");
+                firefoxOptions.addArguments("--width=1920");
+                firefoxOptions.addArguments("--height=1080");
                 return new FirefoxDriver(firefoxOptions);
             case "chrome":
             default:
@@ -57,6 +58,7 @@ public class DriverFactory {
                 chromeOptions.addArguments("--headless=new");
                 chromeOptions.addArguments("--no-sandbox");
                 chromeOptions.addArguments("--disable-dev-shm-usage");
+                chromeOptions.addArguments("--window-size=1920,1080");
                 return new ChromeDriver(chromeOptions);
         }
     }

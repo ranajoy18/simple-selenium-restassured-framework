@@ -3,9 +3,13 @@ package com.automation.pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
+import io.qameta.allure.Step;
+
 public class DashboardPage extends BasePage{
 
     By welcomeUser = By.cssSelector("[data-testid='welcomeUser']");
+    By accountBalance = By.cssSelector("[data-testid='accBal1']");
+    By fundTransferNavLink = By.cssSelector("[data-testid='nav-fund-transfer']");
 
      public DashboardPage(WebDriver driver){
         super(driver);
@@ -13,6 +17,17 @@ public class DashboardPage extends BasePage{
 
     public boolean isDashboardDisplayed() {
         return isElementDisplayed(welcomeUser);
+    }
+
+    public long getAccountBalance() {
+        String rawBalance = getText(accountBalance);
+        return Long.parseLong(rawBalance.replaceAll("[^0-9]", ""));
+    }
+
+    @Step("Navigate to Fund Transfer")
+    public FundTransferPage navigateToFundTransfer() {
+        click(fundTransferNavLink);
+        return new FundTransferPage(driver);
     }
 
 }

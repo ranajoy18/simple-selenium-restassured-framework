@@ -11,6 +11,7 @@
     <test name="UI Tests">
         <classes>
             <class name="com.automation.ui.LoginTest"/>
+            <class name="com.automation.ui.DashboardTest"/>
         </classes>
     </test>
 
