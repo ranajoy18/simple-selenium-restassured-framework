@@ -11,6 +11,7 @@ public class DashboardPage extends BasePage{
     By accountBalance = By.cssSelector("[data-testid='accBal1']");
     By fundTransferNavLink = By.cssSelector("[data-testid='nav-fund-transfer']");
     By beneficiariesNavLink = By.cssSelector("[data-testid='nav-beneficiaries']");
+    By billPaymentsNavLink = By.cssSelector("[data-testid='nav-bill-payments']");
 
      public DashboardPage(WebDriver driver){
         super(driver);
@@ -35,6 +36,12 @@ public class DashboardPage extends BasePage{
     public BeneficiaryPage navigateToBeneficiaries() {
         click(beneficiariesNavLink);
         return new BeneficiaryPage(driver);
+    }
+
+    @Step("Navigate to Bill Payments")
+    public BillPaymentPage navigateToBillPayments() {
+        click(billPaymentsNavLink);
+        return new BillPaymentPage(driver);
     }
 
 }
