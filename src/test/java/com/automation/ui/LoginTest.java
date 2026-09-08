@@ -13,9 +13,9 @@ public class LoginTest extends BaseTest{
     @Test
     public void validLogin(){
 
-        LoginPage loginPage=new LoginPage(driver);
-        DashboardPage dashboardPage =new DashboardPage(driver);
-        
+        LoginPage loginPage=new LoginPage(getDriver());
+        DashboardPage dashboardPage =new DashboardPage(getDriver());
+
         loginPage
         .navigateToLoginPage()
         .enterUsername()
@@ -41,9 +41,9 @@ public class LoginTest extends BaseTest{
     @Test(dataProvider = "invalidLoginData")
     public void invalidLogin(String scenario,String username,String password,String errorMessage){
 
-        LoginPage loginPage=new LoginPage(driver);
-        DashboardPage dashboardPage =new DashboardPage(driver);
-        
+        LoginPage loginPage=new LoginPage(getDriver());
+        DashboardPage dashboardPage =new DashboardPage(getDriver());
+
         String errorMessageOnUI=loginPage
                             .navigateToLoginPage()
                             .enterUsername(username)
