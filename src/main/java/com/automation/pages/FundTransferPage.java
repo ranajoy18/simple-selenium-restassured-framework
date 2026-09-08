@@ -8,6 +8,8 @@ import io.qameta.allure.Step;
 public class FundTransferPage extends BasePage {
 
     By neftType = By.cssSelector("[data-testid='type-NEFT']");
+    By impsType = By.cssSelector("[data-testid='type-IMPS']");
+    By rtgsType = By.cssSelector("[data-testid='type-RTGS']");
     By step1ContinueBtn = By.cssSelector("[data-testid='nextBtn1']");
 
     By firstBeneficiary = By.cssSelector("[data-testid='bene-BEN001']");
@@ -25,6 +27,22 @@ public class FundTransferPage extends BasePage {
 
     public FundTransferPage(WebDriver driver) {
         super(driver);
+    }
+
+    public boolean isNeftOptionDisplayed() {
+        return isElementDisplayed(neftType);
+    }
+
+    public boolean isImpsOptionDisplayed() {
+        return isElementDisplayed(impsType);
+    }
+
+    public boolean isRtgsOptionDisplayed() {
+        return isElementDisplayed(rtgsType);
+    }
+
+    public boolean isStep1ContinueButtonDisplayed() {
+        return isElementDisplayed(step1ContinueBtn);
     }
 
     @Step("Select NEFT transfer type")
