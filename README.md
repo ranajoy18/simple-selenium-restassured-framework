@@ -72,9 +72,17 @@ step in the report.
 ## CI
 
 [.github/workflows/automation-tests.yaml](.github/workflows/automation-tests.yaml)
-runs the suite on `workflow_dispatch` and uploads the generated Allure
-report as a downloadable workflow artifact, whether the run passes or
-fails.
+runs the suite on `workflow_dispatch` and publishes the generated Allure
+report two ways, whether the run passes or fails:
+
+- as a downloadable workflow artifact, and
+- as a live report on GitHub Pages:
+  **https://ranajoy18.github.io/simple-selenium-restassured-framework/**
+  (updated on every run — no download/serve step needed).
+
+> One-time setup: in the repo's **Settings → Pages**, set "Build and
+> deployment" → **Source** to **GitHub Actions**. Until that's set, the
+> `deploy` job will fail even though tests and report generation succeed.
 
 ## Roadmap
 
