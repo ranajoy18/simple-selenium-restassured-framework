@@ -5,6 +5,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -12,6 +14,7 @@ import com.automation.config.ConfigReader;
 
 public class DriverFactory {
 
+    private static final Logger logger = LogManager.getLogger(DriverFactory.class);
     private static final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
 
     protected WebDriver getDriver(){
@@ -21,7 +24,10 @@ public class DriverFactory {
     @BeforeMethod
     public WebDriver setup(){
 
-        WebDriver driver = createDriver(ConfigReader.getProperty("browser"));
+        String browser = ConfigReader.getProperty("browser");
+        logger.info("Starting {} session", browser);
+
+        WebDriver driver = createDriver(browser);
         driverThreadLocal.set(driver);
 
         driver.manage().window().maximize();
@@ -56,6 +62,7 @@ public class DriverFactory {
         if(driver!=null){
             driver.quit();
             driverThreadLocal.remove();
+            logger.info("Session closed");
         }
     }
 }
