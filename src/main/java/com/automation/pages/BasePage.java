@@ -30,7 +30,9 @@ public class BasePage {
 
     protected void type(By locator, String value) {
 
-        waitForElement(locator).sendKeys(value);
+        WebElement element = waitForElement(locator);
+        element.clear();
+        element.sendKeys(value);
     }
 
     protected String getText(By locator) {
