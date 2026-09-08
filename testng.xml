@@ -22,7 +22,7 @@
 
     <test name="API Tests">
         <classes>
-            <class name="com.automation.api.UserApiTest"/>
+            <class name="com.automation.api.AuthApiTest"/>
         </classes>
     </test>
 
