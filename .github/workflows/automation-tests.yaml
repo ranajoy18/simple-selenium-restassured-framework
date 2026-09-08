@@ -22,3 +22,15 @@ jobs:
 
       - name: Run automation tests
         run: mvn clean test
+
+      - name: Generate Allure report
+        if: always()
+        run: mvn io.qameta.allure:allure-maven:report
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: target/site/allure-maven-plugin
+          retention-days: 30
