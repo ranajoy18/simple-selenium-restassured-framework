@@ -13,6 +13,7 @@
             <class name="com.automation.ui.LoginTest"/>
             <class name="com.automation.ui.DashboardTest"/>
             <class name="com.automation.ui.FundTransferTest"/>
+            <class name="com.automation.ui.BeneficiaryTest"/>
         </classes>
     </test>
 
