@@ -24,6 +24,7 @@ public class FundTransferPage extends BasePage {
 
     By successMessage = By.cssSelector("[data-testid='successMessage']");
     By goToDashboardLink = By.cssSelector("[data-testid='goToDashboard']");
+    By otpError = By.cssSelector("[data-testid='error-otp']");
 
     public FundTransferPage(WebDriver driver) {
         super(driver);
@@ -86,6 +87,10 @@ public class FundTransferPage extends BasePage {
 
     public boolean isTransferSuccessful() {
         return isElementDisplayed(successMessage);
+    }
+
+    public boolean isOtpErrorDisplayed() {
+        return isElementDisplayed(otpError);
     }
 
     @Step("Return to dashboard")

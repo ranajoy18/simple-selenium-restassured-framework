@@ -22,4 +22,23 @@ public class FundTransferTest extends BaseTest {
         softAssert.assertAll();
     }
 
+    @Test
+    public void invalidOtpShowsErrorAndBlocksTransfer(){
+
+        DashboardPage dashboardPage = loginAsDefaultUser();
+        FundTransferPage fundTransferPage = dashboardPage.navigateToFundTransfer();
+
+        fundTransferPage
+                .selectNeft()
+                .selectFirstBeneficiary()
+                .enterAmount("100")
+                .confirmTransfer()
+                .enterOtp("000000");
+
+        SoftAssert softAssert = new SoftAssert();
+        softAssert.assertTrue(fundTransferPage.isOtpErrorDisplayed(), "Invalid OTP error message should be displayed");
+        softAssert.assertFalse(fundTransferPage.isTransferSuccessful(), "Transfer should not succeed with an invalid OTP");
+        softAssert.assertAll();
+    }
+
 }
