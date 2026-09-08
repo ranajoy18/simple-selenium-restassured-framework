@@ -3,6 +3,7 @@ package com.automation.ui;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import com.automation.config.ConfigReader;
 import com.automation.pages.DashboardPage;
@@ -51,9 +52,11 @@ public class LoginTest extends BaseTest{
                             .confirmSignIn().getErrorMsg();
 
         System.out.print("errror Message for scenario - "+scenario+" is as following :: "+errorMessageOnUI);
-        Assert.assertEquals(errorMessageOnUI, errorMessage);
 
-        Assert.assertFalse(dashboardPage.isDashboardDisplayed(),"Dashboard should not be displayed: " + scenario);
+        SoftAssert softAssert = new SoftAssert();
+        softAssert.assertEquals(errorMessageOnUI, errorMessage);
+        softAssert.assertFalse(dashboardPage.isDashboardDisplayed(),"Dashboard should not be displayed: " + scenario);
+        softAssert.assertAll();
     }
 
 
