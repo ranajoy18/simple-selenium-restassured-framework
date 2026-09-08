@@ -1,5 +1,7 @@
 package com.automation.driver;
 
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -7,17 +9,20 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 import com.automation.config.ConfigReader;
+
+import io.qameta.allure.Allure;
 
 public class DriverFactory {
 
     private static final Logger logger = LogManager.getLogger(DriverFactory.class);
     private static final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
 
-    protected WebDriver getDriver(){
+    public WebDriver getDriver(){
         return driverThreadLocal.get();
     }
 
@@ -56,10 +61,14 @@ public class DriverFactory {
         }
     }
 
-    @AfterMethod
-    public void tearDown(){
+    @AfterMethod(alwaysRun = true)
+    public void tearDown(ITestResult result){
         WebDriver driver = driverThreadLocal.get();
         if(driver!=null){
+            if(result.getStatus()==ITestResult.FAILURE && driver instanceof TakesScreenshot){
+                byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+                Allure.getLifecycle().addAttachment("Screenshot on failure", "image/png", "png", screenshot);
+            }
             driver.quit();
             driverThreadLocal.remove();
             logger.info("Session closed");
