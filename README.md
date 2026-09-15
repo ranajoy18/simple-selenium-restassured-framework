@@ -1,8 +1,46 @@
 # Selenium + REST Assured Automation Framework
 
+[![Automation Tests](https://github.com/ranajoy18/simple-selenium-restassured-framework/actions/workflows/automation-tests.yaml/badge.svg)](https://github.com/ranajoy18/simple-selenium-restassured-framework/actions/workflows/automation-tests.yaml)
+[![Allure Report](https://img.shields.io/badge/Allure%20Report-live-brightgreen)](https://ranajoy18.github.io/simple-selenium-restassured-framework/)
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Selenium](https://img.shields.io/badge/Selenium-4-43B02A)
+![TestNG](https://img.shields.io/badge/TestNG-7-blue)
+![REST Assured](https://img.shields.io/badge/REST%20Assured-5-red)
+
 A Java test automation framework combining UI (Selenium) and API (REST Assured)
 testing under one Maven/TestNG project, built against a demo banking
 application ([testerrank.com/banking](https://www.testerrank.com/banking)).
+
+## Highlights
+
+A few things worth knowing before you skim the code:
+
+- **Verified the real API by hitting it directly, not by trusting its docs.**
+  The Banking API's own `/api-testing-guide` describes a `{"username":...}`
+  request and a `{"token","user":{...,"role"}}` response — neither matches
+  reality. The live API expects `{"email":...}`, wraps everything as
+  `{"success","data":{...}}`, has no `role` field, and has no `/transfer`
+  endpoint at all (transfers go through `POST /transactions`). Every request
+  body and assertion in `api/` is built against confirmed live behavior.
+- **Diagnosed a real concurrency bug in the test environment, not just the
+  code.** Once the API suite exercised the same demo account concurrently,
+  balance assertions started seeing stale reads — consistent with the
+  Vercel-hosted mock backend keeping in-memory state per serverless
+  instance rather than a real shared datastore. Fixed by scoping parallel
+  execution to the UI suite (independent browser sessions) and keeping the
+  API suite sequential; verified stable across repeated full runs.
+- **Caught a reporting-correctness bug, not just a test bug.** A duplicate
+  `DataProvider` row was silently collapsing in Allure — 28 tests executed,
+  but the report showed 27, because Allure derives a test's history ID from
+  its name + parameters and treated the duplicate as a retry of the
+  original. Fixed by replacing it with a genuinely distinct case.
+- **Validated business formulas against the live app, not assumptions.**
+  The fixed-deposit maturity amount and loan EMI are asserted against the
+  app's actual quarterly-compounding and reducing-balance formulas,
+  reverse-engineered from real output rather than guessed.
+- **API calls are fully visible in Allure without any manual logging** — an
+  `allure-rest-assured` filter attaches the complete HTTP request/response
+  to every step automatically.
 
 ## Tech stack
 
@@ -44,6 +82,16 @@ application ([testerrank.com/banking](https://www.testerrank.com/banking)).
 - **Reporting** (`listeners/TestListener.java` + Allure) — a TestNG
   listener logs pass/fail/skip; a screenshot is automatically attached to
   the Allure report for any UI test that fails.
+- **Automatic retry on failure** (`listeners/RetryAnalyzer.java` +
+  `RetryTransformer.java`) — every test gets one retry before it's reported
+  as failed, applied globally via an `IAnnotationTransformer` (registered
+  through `META-INF/services/org.testng.ITestNGListener`, since a plain
+  `testng.xml` `<listener>` entry doesn't reliably apply annotation
+  transformers before TestNG reads the `@Test` annotations) so no test has
+  to opt in individually. This absorbs genuine environmental flakiness (a
+  slow third-party site, a transient network blip) — it can't mask a real
+  bug, since a deterministic assertion failure reproduces identically on
+  the retry.
 - **API client** (`api/BankingApiClient.java`) — a thin REST Assured
   wrapper around the Banking API (login, accounts, transfers, transaction
   history), reused across the API test classes so the base URI/headers/
@@ -59,6 +107,7 @@ src/main/java/com/automation/
   config/     ConfigReader        — properties + system-property overrides
   driver/     DriverFactory       — thread-safe WebDriver lifecycle
   listeners/  TestListener        — TestNG listener (logging)
+              RetryAnalyzer, RetryTransformer — auto-retry on failure
   pages/      BasePage, LoginPage, DashboardPage, FundTransferPage,
               BeneficiaryPage, BillPaymentPage, FixedDepositPage,
               LoanCalculatorPage, TransactionsPage
