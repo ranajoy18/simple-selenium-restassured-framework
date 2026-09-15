@@ -19,6 +19,7 @@
             <class name="com.automation.ui.BillPaymentTest"/>
             <class name="com.automation.ui.FixedDepositTest"/>
             <class name="com.automation.ui.LoanCalculatorTest"/>
+            <class name="com.automation.ui.TransactionHistoryTest"/>
         </classes>
     </test>
 
