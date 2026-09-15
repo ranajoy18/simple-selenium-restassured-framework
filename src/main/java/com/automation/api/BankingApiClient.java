@@ -10,6 +10,7 @@ import com.automation.config.ConfigReader;
 public class BankingApiClient {
 
     private static final String LOGIN_PATH = "/api/practice/banking/auth/login";
+    private static final String ACCOUNTS_PATH = "/api/practice/banking/accounts";
 
     private RequestSpecification baseRequest() {
         return RestAssured.given()
@@ -29,6 +30,21 @@ public class BankingApiClient {
         return baseRequest()
                 .body(jsonBody)
                 .post(LOGIN_PATH);
+    }
+
+    /** Logs in with the configured demo credentials and returns just the JWT. */
+    public String getValidToken() {
+        return login(ConfigReader.getProperty("api.valid.email"), ConfigReader.getProperty("api.valid.password"))
+                .jsonPath().getString("data.token");
+    }
+
+    /** token may be null to omit the Authorization header entirely. */
+    public Response getAccount(String token) {
+        RequestSpecification request = baseRequest();
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+        return request.get(ACCOUNTS_PATH);
     }
 
 }

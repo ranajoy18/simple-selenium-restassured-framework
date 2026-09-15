@@ -23,6 +23,7 @@
     <test name="API Tests">
         <classes>
             <class name="com.automation.api.AuthApiTest"/>
+            <class name="com.automation.api.AccountsApiTest"/>
         </classes>
     </test>
 
