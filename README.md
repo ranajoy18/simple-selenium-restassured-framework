@@ -25,9 +25,19 @@ application ([testerrank.com/banking](https://www.testerrank.com/banking)).
   React-controlled range sliders (`setSliderValue`, used by the loan
   calculator) so every page object gets these for free.
 - **Thread-safe driver management** (`driver/DriverFactory.java`) — the
-  `WebDriver` lives in a `ThreadLocal`, so `parallel="methods"` in
-  `testng.xml` runs tests concurrently without cross-test driver bleed.
-  Browser choice (Chrome/Firefox) is driven by `config.properties`.
+  `WebDriver` lives in a `ThreadLocal`, so the UI suite runs
+  `parallel="methods"` (3 threads) without cross-test driver bleed, since
+  each thread drives its own independent browser session. Browser choice
+  (Chrome/Firefox) is driven by `config.properties`.
+- **API tests run sequentially, deliberately** — every API test class
+  shares one demo account on a Vercel-hosted mock backend whose state isn't
+  reliably consistent under concurrent requests (observed stale balance
+  reads under parallel load — likely per-serverless-instance in-memory
+  state rather than a real shared datastore). `testng.xml` scopes
+  `parallel="methods"` to the UI `<test>` block only; the API `<test>`
+  block runs single-threaded, and `TransferApiTest` additionally sets
+  `singleThreaded = true` so its own balance-mutating methods can't race
+  each other either.
 - **Externalized config** (`config/ConfigReader.java`) — reads from
   `config.properties`, with any value overridable via `-D<key>=<value>` on
   the command line or in CI, without editing the file.
@@ -35,9 +45,12 @@ application ([testerrank.com/banking](https://www.testerrank.com/banking)).
   listener logs pass/fail/skip; a screenshot is automatically attached to
   the Allure report for any UI test that fails.
 - **API client** (`api/BankingApiClient.java`) — a thin REST Assured
-  wrapper around the Banking API (login, authenticated requests), reused
-  across the API test classes so the base URI/headers/auth-token wiring
-  live in one place. Request/response POJOs live in `api/model/`.
+  wrapper around the Banking API (login, accounts, transfers, transaction
+  history), reused across the API test classes so the base URI/headers/
+  auth-token wiring live in one place. Request/response POJOs live in
+  `api/model/`. Every call is filtered through `allure-rest-assured`, so
+  the full HTTP request/response is attached to Allure automatically —
+  no manual logging needed to debug a failing API test from the report.
 
 ## Project structure
 
@@ -48,14 +61,17 @@ src/main/java/com/automation/
   listeners/  TestListener        — TestNG listener (logging)
   pages/      BasePage, LoginPage, DashboardPage, FundTransferPage,
               BeneficiaryPage, BillPaymentPage, FixedDepositPage,
-              LoanCalculatorPage
-  api/        BankingApiClient    — REST Assured client (auth, accounts)
-  api/model/  LoginRequest, Account
+              LoanCalculatorPage, TransactionsPage
+  api/        BankingApiClient    — REST Assured client (auth, accounts,
+              transfers, transaction history)
+  api/model/  LoginRequest, Account, TransferRequest, Transaction
 
 src/test/java/com/automation/
   ui/         LoginTest, DashboardTest, FundTransferTest, BeneficiaryTest,
-              BillPaymentTest, FixedDepositTest, LoanCalculatorTest, BaseTest
-  api/        AuthApiTest, AccountsApiTest
+              BillPaymentTest, FixedDepositTest, LoanCalculatorTest,
+              TransactionHistoryTest, BaseTest
+  api/        AuthApiTest, AccountsApiTest, TransferApiTest,
+              TransactionHistoryApiTest
 ```
 
 ### UI coverage
@@ -65,9 +81,10 @@ Login (valid/invalid), dashboard balance, the full fund-transfer wizard
 rejection) with a real balance-delta assertion, adding a beneficiary
 (including the IFSC → bank-name auto-fill), an electricity bill payment,
 opening a fixed deposit with its maturity amount verified against the
-app's actual quarterly-compounding formula, and the loan EMI calculator
+app's actual quarterly-compounding formula, the loan EMI calculator
 verified against the standard reducing-balance formula across several
-input combinations (driven via range sliders).
+input combinations (driven via range sliders), and an end-to-end test
+confirming a completed transfer actually shows up in the Transactions page.
 
 ### API coverage
 
@@ -80,11 +97,22 @@ Built against the real Banking API at `https://www.testerrank.com/api/practice/b
 - **Accounts** (`AccountsApiTest`) — valid/no-auth/invalid-token access,
   field-level validation (balance as `BigDecimal`), and response
   deserialization into an `Account` POJO.
+- **Fund transfer** (`TransferApiTest`) — a successful transfer with a real
+  balance-delta assertion, negative cases (zero/negative amount, over-balance,
+  missing fields, no auth) against the real error messages, the app's
+  actual (lenient) handling of a nonexistent destination account, a check
+  that a rejected transfer creates no transaction record, and a full
+  login → transfer → balance → history end-to-end workflow test.
+- **Transaction history** (`TransactionHistoryApiTest`) — read-only checks:
+  valid/no-auth access and response deserialization into a `List<Transaction>`.
 
 > The API's own docs (`/api-testing-guide`) describe a `{"username":...}`
 > request and a differently-shaped response; the live API actually expects
 > `{"email":...}` and returns `{"success","data":{...}}` with no `role`
-> field. The client and tests are built against the verified live
+> field. There's also no separate `/transfer` endpoint or source-account
+> request field — transfers go through `POST /transactions`
+> (`type: "transfer"`) and the source account is always the authenticated
+> user's own. The client and tests are built against this verified live
 > behavior, not the docs.
 
 ## Running the tests
@@ -95,8 +123,9 @@ mvn test -Dbrowser=firefox        # run against Firefox instead
 mvn test -Dusername=... -Dpassword=...   # override credentials without editing config.properties
 ```
 
-Tests run in parallel (`parallel="methods"`, 3 threads) as configured in
-[testng.xml](testng.xml).
+The UI suite runs in parallel (`parallel="methods"`, 3 threads); the API
+suite runs sequentially. See [testng.xml](testng.xml) and the note above
+on why API tests aren't parallelized.
 
 ## Reporting
 
@@ -128,13 +157,10 @@ report two ways, whether the run passes or fails:
 
 ## Roadmap
 
-API layer, in progress:
-
-- [x] Auth (`AuthApiTest`)
-- [x] Accounts (`AccountsApiTest`)
-- [ ] Fund transfer (`POST /transactions` with `type: "transfer"` — there's
-      no separate `/transfer` endpoint; the source account is derived from
-      the JWT, not a request field)
-- [ ] End-to-end transfer + balance-update assertion (`BigDecimal`)
-- [ ] Transaction history (`GET /transactions`)
-- [ ] Full login → transfer → balance → history workflow test
+- [x] Auth API (`AuthApiTest`)
+- [x] Accounts API (`AccountsApiTest`)
+- [x] Fund transfer API, incl. balance-update and history assertions (`TransferApiTest`)
+- [x] Transaction history API (`TransactionHistoryApiTest`)
+- [x] UI end-to-end: transfer → transaction history (`TransactionHistoryTest`)
+- [ ] Remaining granular negative-transfer cases from the original spec not
+      yet covered individually (a representative subset is already tested)
