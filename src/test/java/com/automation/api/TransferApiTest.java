@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import io.restassured.response.Response;
 import org.testng.Assert;
@@ -12,6 +13,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.automation.api.model.Transaction;
 import com.automation.api.model.TransferRequest;
 
 /**
@@ -146,6 +148,80 @@ public class TransferApiTest {
                 .statusCode(expectedStatus)
                 .body("success", equalTo(false))
                 .body("error", equalTo(expectedError));
+    }
+
+    @Test
+    public void transferAppearsInTransactionHistory(){
+
+        Response transferResponse = apiClient.createTransaction(validToken,
+                new TransferRequest(new BigDecimal("500"), "History check transfer", DESTINATION_ACCOUNT));
+        String transactionId = transferResponse.jsonPath().getString("data.id");
+
+        List<Transaction> history = apiClient.getTransactions(validToken).jsonPath().getList("data", Transaction.class);
+
+        Transaction match = history.stream()
+                .filter(txn -> transactionId.equals(txn.getId()))
+                .findFirst()
+                .orElse(null);
+
+        Assert.assertNotNull(match, "The transfer's transaction id should appear in transaction history: " + transactionId);
+        Assert.assertEquals(match.getType(), "transfer");
+        Assert.assertEquals(match.getAmount(), new BigDecimal("500"));
+        Assert.assertEquals(match.getToAccountNumber(), DESTINATION_ACCOUNT);
+        Assert.assertEquals(match.getStatus(), "completed");
+    }
+
+    @Test
+    public void failedTransferDoesNotCreateTransactionRecord(){
+
+        int countBefore = apiClient.getTransactions(validToken).jsonPath().getList("data").size();
+
+        apiClient.createTransaction(validToken,
+                new TransferRequest(new BigDecimal("999999999"), "Should fail, no record expected", DESTINATION_ACCOUNT))
+                .then().statusCode(400);
+
+        int countAfter = apiClient.getTransactions(validToken).jsonPath().getList("data").size();
+
+        Assert.assertEquals(countAfter, countBefore, "A rejected transfer must not create a transaction record");
+    }
+
+    /** Suite 6: the full login -> transfer -> balance -> history business workflow in one test. */
+    @Test
+    public void completeTransferWorkflowEndToEnd(){
+
+        BigDecimal transferAmount = new BigDecimal("500");
+
+        // 1-2: authenticate (done once in @BeforeClass; re-verified here to keep this test self-describing)
+        Assert.assertNotNull(validToken, "A valid JWT should already be available");
+
+        // 3-5: get accounts, identify source account, capture balance
+        Response accountBefore = apiClient.getAccount(validToken);
+        accountBefore.then().statusCode(200);
+        String sourceAccountNumber = accountBefore.jsonPath().getString("data.accountNumber");
+        BigDecimal initialBalance = accountBefore.jsonPath().getObject("data.balance", BigDecimal.class);
+
+        // 6-7: perform the transfer and verify it succeeded
+        Response transferResponse = apiClient.createTransaction(validToken,
+                new TransferRequest(transferAmount, "Full E2E workflow transfer", DESTINATION_ACCOUNT));
+        transferResponse.then()
+                .statusCode(201)
+                .body("success", equalTo(true))
+                .body("data.status", equalTo("completed"))
+                .body("data.fromAccountNumber", equalTo(sourceAccountNumber));
+        String transactionId = transferResponse.jsonPath().getString("data.id");
+
+        // 8-10: retrieve the source account again and compute the expected balance dynamically
+        BigDecimal finalBalance = apiClient.getAccount(validToken).jsonPath().getObject("data.balance", BigDecimal.class);
+        BigDecimal expectedBalance = initialBalance.subtract(transferAmount);
+
+        // 11: assert actual == expected
+        Assert.assertEquals(finalBalance, expectedBalance,
+                "initialBalance(" + initialBalance + ") - " + transferAmount + " should equal finalBalance(" + finalBalance + ")");
+
+        // Also confirm the transfer surfaces in transaction history, closing the full loop.
+        List<Transaction> history = apiClient.getTransactions(validToken).jsonPath().getList("data", Transaction.class);
+        boolean transferRecorded = history.stream().anyMatch(txn -> transactionId.equals(txn.getId()));
+        Assert.assertTrue(transferRecorded, "The completed transfer should be recorded in transaction history");
     }
 
 }
