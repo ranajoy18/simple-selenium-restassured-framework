@@ -60,6 +60,13 @@
             <version>2.29.1</version>
         </dependency>
 
+        <!-- Attaches full request/response detail to Allure for every REST Assured call -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-rest-assured</artifactId>
+            <version>2.29.1</version>
+        </dependency>
+
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
