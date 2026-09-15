@@ -31,7 +31,7 @@ public class LoginTest extends BaseTest{
 
     return new Object[][] {
             {"Invalid Password", ConfigReader.getProperty("username"), "wrongpassword","Invalid User ID or Password. Please try again."},
-            {"Invalid Username & Password", "wronguser", "wrongpassword","Invalid User ID or Password. Please try again."},
+            {"Invalid Username", "wronguser", ConfigReader.getProperty("password"), "Invalid User ID or Password. Please try again."},
             {"Invalid Username & Password", "wronguser", "wrongpassword","Invalid User ID or Password. Please try again."},
             {"Empty Username", "",ConfigReader.getProperty("username"), "Please enter your User ID and Password."},
             {"Empty Password", ConfigReader.getProperty("username"), "","Please enter your User ID and Password."},
