@@ -7,12 +7,14 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
 import com.automation.api.model.LoginRequest;
+import com.automation.api.model.TransferRequest;
 import com.automation.config.ConfigReader;
 
 public class BankingApiClient {
 
     private static final String LOGIN_PATH = "/api/practice/banking/auth/login";
     private static final String ACCOUNTS_PATH = "/api/practice/banking/accounts";
+    private static final String TRANSACTIONS_PATH = "/api/practice/banking/transactions";
 
     private RequestSpecification baseRequest() {
         return RestAssured.given()
@@ -20,6 +22,15 @@ public class BankingApiClient {
                 .baseUri(ConfigReader.getProperty("api.base.url"))
                 .contentType("application/json")
                 .accept("application/json");
+    }
+
+    /** token may be null to omit the Authorization header entirely. */
+    private RequestSpecification authenticatedRequest(String token) {
+        RequestSpecification request = baseRequest();
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+        return request;
     }
 
     @Step("Login as {email}")
@@ -44,14 +55,29 @@ public class BankingApiClient {
                 .jsonPath().getString("data.token");
     }
 
-    /** token may be null to omit the Authorization header entirely. */
     @Step("Get account")
     public Response getAccount(String token) {
-        RequestSpecification request = baseRequest();
-        if (token != null) {
-            request = request.header("Authorization", "Bearer " + token);
-        }
-        return request.get(ACCOUNTS_PATH);
+        return authenticatedRequest(token).get(ACCOUNTS_PATH);
+    }
+
+    @Step("Transfer {requestBody.amount} to {requestBody.toAccountNumber}")
+    public Response createTransaction(String token, TransferRequest requestBody) {
+        return authenticatedRequest(token)
+                .body(requestBody)
+                .post(TRANSACTIONS_PATH);
+    }
+
+    /** For edge cases (missing/invalid fields) where the exact JSON shape matters. */
+    @Step("Create transaction with raw payload: {jsonBody}")
+    public Response createTransactionRaw(String token, String jsonBody) {
+        return authenticatedRequest(token)
+                .body(jsonBody)
+                .post(TRANSACTIONS_PATH);
+    }
+
+    @Step("Get transaction history")
+    public Response getTransactions(String token) {
+        return authenticatedRequest(token).get(TRANSACTIONS_PATH);
     }
 
 }

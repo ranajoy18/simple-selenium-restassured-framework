@@ -24,6 +24,7 @@
         <classes>
             <class name="com.automation.api.AuthApiTest"/>
             <class name="com.automation.api.AccountsApiTest"/>
+            <class name="com.automation.api.TransferApiTest"/>
         </classes>
     </test>
 
